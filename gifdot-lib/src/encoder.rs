@@ -1,5 +1,5 @@
 use gdnative::prelude::*;
-use gif::{Frame, Encoder, Repeat};
+use gif::{Frame, Encoder, Repeat, DisposalMethod};
 
 struct FrameData (Vec<u8>, u16);
 
@@ -20,7 +20,7 @@ impl GifdotEncoder {
 
     #[export]
     fn add_frame(&mut self, _owner: &Reference, image_data: PoolArray<u8>, delay: u16) {
-        self.frame_data.push(FrameData(image_data.to_vec(), delay))
+        self.frame_data.push(FrameData(image_data.to_vec(), delay));
     }
 
     #[export]
@@ -31,7 +31,8 @@ impl GifdotEncoder {
         for data in &mut self.frame_data {
             let mut frame = Frame::from_rgba(self.width, self.height, &mut data.0);
             frame.delay = data.1;
-            encoder.write_frame(&frame).expect("Error while writing frame")
+            frame.dispose = DisposalMethod::Background;
+            encoder.write_frame(&frame).expect("Error while writing frame");
         }drop(encoder);
         PoolArray::from_vec(buffer)
     }
